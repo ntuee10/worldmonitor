@@ -187,6 +187,12 @@ export const SOURCE_TIERS: Record<string, number> = {
   'India Tech News': 3,
   'Taiwan Tech News': 3,
   'GloNewswire (Taiwan)': 4,
+  // Taiwan monitoring
+  'Focus Taiwan': 2,
+  'Taiwan News': 3,
+  'Taipei Times': 3,
+  'Taiwan Strait Watch': 3,
+  'Taiwan Semiconductor': 3,
   // LATAM
   'La Silla Vacía': 3,
   'LATAM Tech News': 3,
@@ -384,6 +390,11 @@ export const SOURCE_TYPES: Record<string, SourceType> = {
   'This Week in Startups': 'tech', 'The Twenty Minute VC': 'tech',
   'Hard Fork (NYT)': 'tech', 'Pivot (Vox)': 'tech', 'Stratechery': 'tech',
   'Benedict Evans': 'tech', 'How I Built This': 'tech', 'Masters of Scale': 'tech',
+
+  // Taiwan monitoring sources
+  'Focus Taiwan': 'mainstream', 'Taiwan News': 'mainstream', 'Taipei Times': 'mainstream',
+  'Taiwan Strait Watch': 'intel', 'Taiwan Semiconductor': 'tech',
+  'Taiwan Tech News': 'tech', 'GloNewswire (Taiwan)': 'other',
 };
 
 export function getSourceType(sourceName: string): SourceType {
@@ -706,6 +717,12 @@ const FULL_FEEDS: Record<string, Feed[]> = {
     // Australia
     { name: 'ABC News Australia', url: rss('https://www.abc.net.au/news/feed/2942460/rss.xml') },
     { name: 'Guardian Australia', url: rss('https://www.theguardian.com/australia-news/rss') },
+    // Taiwan
+    { name: 'Focus Taiwan', url: rss('https://focustaiwan.tw/RSS/Latest.aspx') },
+    { name: 'Taiwan News', url: rss('https://www.taiwannews.com.tw/feed/rss') },
+    { name: 'Taipei Times', url: rss('https://www.taipeitimes.com/xml/index.rss') },
+    { name: 'Taiwan Strait Watch', url: rss('https://news.google.com/rss/search?q=(Taiwan+Strait+OR+PLA+exercises+OR+Taiwan+military+OR+TSMC)+when:1d&hl=en-US&gl=US&ceid=US:en') },
+    { name: 'Taiwan Semiconductor', url: rss('https://news.google.com/rss/search?q=(TSMC+OR+MediaTek+OR+Taiwan+chip+OR+semiconductor+Taiwan)+when:3d&hl=en-US&gl=US&ceid=US:en') },
     // Pacific Islands
     { name: 'Island Times (Palau)', url: rss('https://islandtimes.org/feed/') },
   ],

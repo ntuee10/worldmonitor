@@ -62,6 +62,13 @@ const HIGH_KEYWORDS: KeywordMap = {
   'tsunami': 'disaster',
   'hurricane': 'disaster',
   'typhoon': 'disaster',
+  // Taiwan-specific high-alert keywords
+  'pla exercises': 'military',
+  'pla drills': 'military',
+  'taiwan strait blockade': 'military',
+  'taiwan invasion': 'conflict',
+  'pla incursion': 'military',
+  'taiwan adiz': 'military',
 };
 
 const MEDIUM_KEYWORDS: KeywordMap = {
@@ -98,6 +105,15 @@ const MEDIUM_KEYWORDS: KeywordMap = {
   'power outage': 'infrastructure',
   'internet outage': 'infrastructure',
   'derailment': 'infrastructure',
+  // Taiwan-specific medium-alert keywords
+  'taiwan strait': 'military',
+  'pla warplanes': 'military',
+  'pla vessels': 'military',
+  'taiwan independence': 'diplomatic',
+  'us taiwan relations': 'diplomatic',
+  'us taiwan': 'diplomatic',
+  'tsmc disruption': 'economic',
+  'chip supply chain': 'economic',
 };
 
 const LOW_KEYWORDS: KeywordMap = {

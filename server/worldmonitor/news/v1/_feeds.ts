@@ -103,6 +103,13 @@ export const VARIANT_FEEDS: Record<string, Record<string, ServerFeed[]>> = {
     layoffs: [
       { name: 'TechCrunch Layoffs', url: 'https://techcrunch.com/tag/layoffs/feed/' },
     ],
+    taiwan: [
+      { name: 'Focus Taiwan', url: 'https://focustaiwan.tw/RSS/Latest.aspx' },
+      { name: 'Taiwan News', url: 'https://www.taiwannews.com.tw/feed/rss' },
+      { name: 'Taipei Times', url: 'https://www.taipeitimes.com/xml/index.rss' },
+      { name: 'Taiwan Strait Watch', url: gn('(Taiwan Strait OR PLA exercises OR Taiwan military OR TSMC) when:1d') },
+      { name: 'Taiwan Semiconductor', url: gn('(TSMC OR MediaTek OR Taiwan chip OR semiconductor Taiwan) when:3d') },
+    ],
   },
 
   tech: {

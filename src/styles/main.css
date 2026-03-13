@@ -2378,6 +2378,222 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
   overflow: hidden !important;
 }
 
+/* ---- Tab bar (Surveillance / IPTV) ---- */
+.webcam-tab-bar {
+  display: flex;
+  gap: 0;
+  background: var(--darken-heavy);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.webcam-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.webcam-tab-btn:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.webcam-tab-btn.active {
+  color: var(--red);
+  border-bottom-color: var(--red);
+}
+
+.webcam-tab-btn svg {
+  flex-shrink: 0;
+}
+
+/* ---- IPTV-specific styles ---- */
+.iptv-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+  object-fit: contain;
+}
+
+.iptv-grid .iptv-cell {
+  cursor: pointer;
+}
+
+.iptv-country-badge {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.12);
+  padding: 1px 4px;
+  border-radius: 2px;
+  letter-spacing: 0.5px;
+  margin-left: auto;
+}
+
+.iptv-channel-info {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 12px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, transparent 100%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.iptv-channel-name {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* ---- Map view ---- */
+.webcam-map-container {
+  flex: 1;
+  min-height: 300px;
+  position: relative;
+}
+
+.webcam-map-container .maplibregl-canvas {
+  outline: none;
+}
+
+.webcam-map-marker {
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.webcam-map-marker:hover {
+  transform: scale(1.25);
+  z-index: 10;
+}
+
+.webcam-map-marker--cam svg,
+.webcam-map-marker--iptv svg {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+}
+
+.webcam-map-marker-cluster {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #4fc3f7;
+  color: #000;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Map popup (channel list) */
+.webcam-map-popup {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  max-height: 200px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.webcam-map-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.webcam-map-popup-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.webcam-map-popup-close:hover {
+  color: var(--text);
+}
+
+.webcam-map-popup-list {
+  overflow-y: auto;
+  flex: 1;
+}
+
+.webcam-map-popup-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+
+.webcam-map-popup-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.webcam-map-popup-item:last-child {
+  border-bottom: none;
+}
+
+.webcam-map-popup-lang {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
 .webcam-toolbar {
   display: flex;
   justify-content: space-between;

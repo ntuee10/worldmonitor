@@ -21,8 +21,6 @@ export interface IptvChannel {
   url: string;
   /** Approximate coordinates [lat, lng] for the broadcaster HQ / target audience */
   coords: [number, number];
-  /** Whether the URL is a YouTube live link (needs ythls proxy or iframe) */
-  isYouTube?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -32,7 +30,6 @@ const NEWS_CHANNELS: IptvChannel[] = [
   { id: 'al-jazeera-en', name: 'Al Jazeera English', country: 'Qatar', countryCode: 'QA', region: 'news', category: 'news', language: 'en', url: 'https://live-hls-apps-aje-fa.getaj.net/AJE/index.m3u8', coords: [25.29, 51.53] },
   { id: 'bbc-news', name: 'BBC News', country: 'UK', countryCode: 'GB', region: 'news', category: 'news', language: 'en', url: 'https://vs-hls-push-uk.live.fastly.md.bbci.co.uk/x=4/i=urn:bbc:pips:service:bbc_news_channel_hd/iptv_hd_abr_v1.m3u8', coords: [51.51, -0.12] },
   { id: 'dw-en', name: 'DW News', country: 'Germany', countryCode: 'DE', region: 'news', category: 'news', language: 'en', url: 'https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8', coords: [50.73, 7.10] },
-  { id: 'france24-en', name: 'France 24', country: 'France', countryCode: 'FR', region: 'news', category: 'news', language: 'en', url: 'https://artesimulcast.akamaized.net/hls/live/2031003/artelive_fr/index.m3u8', coords: [48.87, 2.33] },
   { id: 'cgtn-en', name: 'CGTN', country: 'China', countryCode: 'CN', region: 'news', category: 'news', language: 'en', url: 'https://news.cgtn.com/resource/live/english/cgtn-news.m3u8', coords: [39.91, 116.40] },
   { id: 'nhk-world', name: 'NHK World Japan', country: 'Japan', countryCode: 'JP', region: 'news', category: 'news', language: 'en', url: 'https://nhkwlive-ojp.akamaized.net/hls/live/2003459/nhkwlive-ojp-en/index_4M.m3u8', coords: [35.68, 139.69] },
   { id: 'trt-world', name: 'TRT World', country: 'Turkey', countryCode: 'TR', region: 'news', category: 'news', language: 'en', url: 'https://api.trtworld.com/livestream/v1/WcM3Oa2LHD9iUjWDSRUI335NkMWVTUV351H56dqC/master.m3u8', coords: [41.01, 28.98] },
@@ -43,7 +40,6 @@ const NEWS_CHANNELS: IptvChannel[] = [
   { id: 'gb-news', name: 'GB News', country: 'UK', countryCode: 'GB', region: 'news', category: 'news', language: 'en', url: 'https://live-gbnews.simplestreamcdn.com/live5/gbnews/bitrate1.isml/manifest.m3u8', coords: [51.52, -0.09] },
   { id: 'tv5monde-info', name: 'TV5Monde Info', country: 'France', countryCode: 'FR', region: 'news', category: 'news', language: 'fr', url: 'https://ott.tv5monde.com/Content/HLS/Live/channel(info)/index.m3u8', coords: [48.85, 2.35] },
   { id: 'cgtn-fr', name: 'CGTN Français', country: 'China', countryCode: 'CN', region: 'news', category: 'news', language: 'fr', url: 'https://news.cgtn.com/resource/live/french/cgtn-f.m3u8', coords: [39.91, 116.40] },
-  { id: 'i24-news', name: 'i24 News', country: 'Israel', countryCode: 'IL', region: 'news', category: 'news', language: 'en', url: 'https://bcovlive-a.akamaihd.net/6e3dd61ac4c34d6f8fb9698b565b9f50/eu-central-1/5377161796001/playlist-all_dvr.m3u8', coords: [32.07, 34.79] },
   { id: 'ticker-news', name: 'Ticker News', country: 'Australia', countryCode: 'AU', region: 'news', category: 'news', language: 'en', url: 'https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01486-tickernews-tickernewsweb-ono/playlist.m3u8', coords: [-33.87, 151.21] },
   // Business
   { id: 'bloomberg-us', name: 'Bloomberg US', country: 'USA', countryCode: 'US', region: 'news', category: 'business', language: 'en', url: 'https://bloomberg.com/media-manifest/streams/us.m3u8', coords: [40.76, -73.97] },
@@ -73,8 +69,6 @@ const AMERICAS_CHANNELS: IptvChannel[] = [
   { id: 'global-news-ca', name: 'Global News', country: 'Canada', countryCode: 'CA', region: 'americas', category: 'news', language: 'en', url: 'https://live.corusdigitaldev.com/groupd/live/49a91e7f-1023-430f-8d66-561055f3d0f7/live.isml/.m3u8', coords: [43.64, -79.39] },
   // Brazil
   { id: 'tv-cultura', name: 'TV Cultura', country: 'Brazil', countryCode: 'BR', region: 'americas', category: 'general', language: 'pt', url: 'https://player-tvcultura.stream.uol.com.br/live/tvcultura.m3u8', coords: [-23.55, -46.63] },
-  // Argentina
-  { id: 'tn-argentina', name: 'TN Todo Noticias', country: 'Argentina', countryCode: 'AR', region: 'americas', category: 'news', language: 'es', url: 'https://www.youtube.com/c/todonoticias/live', coords: [-34.60, -58.38], isYouTube: true },
 ];
 
 // ---------------------------------------------------------------------------
@@ -103,7 +97,6 @@ const EUROPE_CHANNELS: IptvChannel[] = [
   { id: 'tv5monde-eu', name: 'TV5Monde Europe', country: 'France', countryCode: 'FR', region: 'europe', category: 'general', language: 'fr', url: 'https://ott.tv5monde.com/Content/HLS/Live/channel(europe)/index.m3u8', coords: [48.87, 2.33] },
   // Austria
   { id: 'orf1', name: 'ORF 1', country: 'Austria', countryCode: 'AT', region: 'europe', category: 'general', language: 'de', url: 'https://orf1.mdn.ors.at/out/u/orf1/q8c/manifest.m3u8', coords: [48.21, 16.37] },
-  // Ukraine
   { id: 'arise-news', name: 'Arise News', country: 'UK', countryCode: 'GB', region: 'europe', category: 'news', language: 'en', url: 'https://liveedge-arisenews.visioncdn.com/live-hls/arisenews/arisenews/arisenews_web/master.m3u8', coords: [51.51, -0.12] },
   // S4C (Wales)
   { id: 's4c', name: 'S4C', country: 'UK', countryCode: 'GB', region: 'europe', category: 'general', language: 'cy', url: 'https://live-uk.s4c-cdn.co.uk/out/v1/a0134f1fd5a2461b9422b574566d4442/live_uk.m3u8', coords: [52.48, -3.18] },
@@ -114,7 +107,7 @@ const EUROPE_CHANNELS: IptvChannel[] = [
 // ---------------------------------------------------------------------------
 const ASIA_CHANNELS: IptvChannel[] = [
   // Japan
-  { id: 'nhk-general', name: 'NHK総合', country: 'Japan', countryCode: 'JP', region: 'asia', category: 'general', language: 'ja', url: 'https://master.nhkworld.jp/nhkworld-tv/playlist/live.m3u8', coords: [35.68, 139.69] },
+  { id: 'nhk-world-catv', name: 'NHK WORLD-JAPAN (CATV)', country: 'Japan', countryCode: 'JP', region: 'asia', category: 'general', language: 'ja', url: 'https://master.nhkworld.jp/nhkworld-tv/playlist/live.m3u8', coords: [35.68, 139.69] },
   { id: 'shop-channel-jp', name: 'ショップチャンネル', country: 'Japan', countryCode: 'JP', region: 'asia', category: 'entertainment', language: 'ja', url: 'https://stream3.shopch.jp/HLS/master.m3u8', coords: [35.68, 139.69] },
   { id: 'weathernews-jp', name: 'ウェザーニュース', country: 'Japan', countryCode: 'JP', region: 'asia', category: 'weather', language: 'ja', url: 'https://rch01e-alive-hls.akamaized.net/38fb45b25cdb05a1/out/v1/4e907bfabc684a1dae10df8431a84d21/index.m3u8', coords: [35.68, 139.69] },
   // China
@@ -127,7 +120,6 @@ const ASIA_CHANNELS: IptvChannel[] = [
   { id: 'arirang', name: 'Arirang World', country: 'South Korea', countryCode: 'KR', region: 'asia', category: 'general', language: 'en', url: 'https://amdlive.ctnd.com.edgesuite.net/arirang_1ch/smil:arirang_1ch.smil/chunklist_b2256000_sleng.m3u8', coords: [37.57, 126.98] },
   // Indonesia
   { id: 'metro-globe', name: 'Metro Globe Network', country: 'Indonesia', countryCode: 'ID', region: 'asia', category: 'news', language: 'id', url: 'https://edge.medcom.id/live-edge/smil:mgnch.smil/playlist.m3u8', coords: [-6.21, 106.85] },
-  // Taiwan
   { id: 'tokyo-mx', name: 'TOKYO MX', country: 'Japan', countryCode: 'JP', region: 'asia', category: 'general', language: 'ja', url: 'https://cdn-uw2-prod.tsv2.amagi.tv/linear/amg01287-rakutentvjapan-tokyomx-cmaf-rakutenjp/playlist.m3u8', coords: [35.68, 139.69] },
   // Australia
   { id: 'abc-news-au', name: 'ABC News Australia', country: 'Australia', countryCode: 'AU', region: 'asia', category: 'news', language: 'en', url: 'https://abc-iview-mediapackagestreams-2.akamaized.net/out/v1/6e1cc6d25ec0480ea099a5399d73bc4b/index.m3u8', coords: [-33.87, 151.21] },
@@ -140,8 +132,7 @@ const ASIA_CHANNELS: IptvChannel[] = [
 // Middle East
 // ---------------------------------------------------------------------------
 const MIDDLE_EAST_CHANNELS: IptvChannel[] = [
-  { id: 'al-jazeera-ar', name: 'الجزيرة', country: 'Qatar', countryCode: 'QA', region: 'middle-east', category: 'news', language: 'ar', url: 'https://live-hls-apps-aje-fa.getaj.net/AJA/index.m3u8', coords: [25.29, 51.53] },
-  { id: 'rt-arabic', name: 'RT Arabic', country: 'Russia', countryCode: 'RU', region: 'middle-east', category: 'news', language: 'ar', url: 'https://rt-glb.rttv.com/live/rtarabic/playlist.m3u8', coords: [55.75, 37.62] },
+  { id: 'i24-news', name: 'i24 News', country: 'Israel', countryCode: 'IL', region: 'middle-east', category: 'news', language: 'en', url: 'https://bcovlive-a.akamaihd.net/6e3dd61ac4c34d6f8fb9698b565b9f50/eu-central-1/5377161796001/playlist-all_dvr.m3u8', coords: [32.07, 34.79] },
 ];
 
 // ---------------------------------------------------------------------------

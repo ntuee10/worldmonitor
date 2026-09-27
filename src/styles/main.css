@@ -2474,6 +2474,7 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
   flex: 1;
   min-height: 300px;
   position: relative;
+  overflow: hidden;
 }
 
 .webcam-map-container .maplibregl-canvas {
@@ -2599,7 +2600,8 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
   justify-content: space-between;
   align-items: center;
   gap: 4px;
-  padding: 6px 8px;
+  /* Right padding clears the 20px .panel-col-resize-handle overlay */
+  padding: 6px 24px 6px 8px;
   background: var(--darken-heavy);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
@@ -2608,6 +2610,21 @@ body.live-news-fullscreen-active .panels-grid > *:not(.live-news-fullscreen) {
 .webcam-toolbar-group {
   display: flex;
   gap: 4px;
+}
+
+/* Region filters scroll horizontally when they don't fit; view buttons never shrink away. */
+.webcam-toolbar-group:first-child {
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.webcam-toolbar-group:first-child::-webkit-scrollbar {
+  display: none;
+}
+
+.webcam-toolbar-group:last-child {
+  flex-shrink: 0;
 }
 
 .webcam-region-btn,

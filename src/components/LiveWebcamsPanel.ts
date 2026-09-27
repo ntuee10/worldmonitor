@@ -88,12 +88,14 @@ export class LiveWebcamsPanel extends Panel {
   // IPTV state
   private iptvRegionFilter: IptvRegionFilter = 'news';
   private activeIptvChannel: IptvChannel = IPTV_CHANNELS[0]!;
-  private hlsInstance: any = null;
-  private videoElement: HTMLVideoElement | null = null;
+  private hlsInstances: Array<{ destroy(): void }> = [];
+  private videoElements: HTMLVideoElement[] = [];
 
   // Map state
   private mapContainer: HTMLElement | null = null;
-  private mapInstance: any = null; // maplibregl.Map
+  private mapInstance: import('maplibre-gl').Map | null = null;
+  // Incremented on every render so async work (hls.js / maplibre import) started by a stale render bails out.
+  private renderGeneration = 0;
 
   // Shared UI
   private tabBar: HTMLElement | null = null;
@@ -399,80 +401,52 @@ export class LiveWebcamsPanel extends Panel {
   // HLS playback for IPTV
   // ---------------------------------------------------------------------------
   private async playIptvStream(channel: IptvChannel, container: HTMLElement): Promise<void> {
-    this.destroyHls();
-
-    if (channel.isYouTube) {
-      // YouTube IPTV channels — use iframe embed
-      const videoId = this.extractYouTubeId(channel.url);
-      if (videoId) {
-        const iframe = document.createElement('iframe');
-        iframe.className = 'webcam-iframe';
-        iframe.src = this.buildEmbedUrl(videoId);
-        iframe.title = `${channel.name} live`;
-        iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
-        iframe.referrerPolicy = 'strict-origin-when-cross-origin';
-        if (!isDesktopRuntime()) {
-          iframe.allowFullscreen = true;
-          iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation');
-        }
-        container.appendChild(iframe);
-        this.iframes.push(iframe);
-      }
-      return;
-    }
-
+    const generation = this.renderGeneration;
     const video = document.createElement('video');
     video.className = 'iptv-video';
     video.autoplay = true;
     video.muted = true;
     video.playsInline = true;
     video.controls = true;
-    this.videoElement = video;
-    container.appendChild(video);
+    video.dataset.channelId = channel.id;
+    this.videoElements.push(video);
+    container.insertBefore(video, container.firstChild);
 
     // Native HLS (Safari, iOS)
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.addEventListener('error', () => this.renderIptvError(container, channel), { once: true });
       video.src = channel.url;
       video.play().catch(() => { /* autoplay blocked */ });
       return;
     }
 
-    // Use HLS.js for other browsers
     try {
       const Hls = (await import('hls.js')).default;
-      if (Hls.isSupported()) {
-        const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
-        this.hlsInstance = hls;
-        hls.loadSource(channel.url);
-        hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play().catch(() => { /* autoplay blocked */ });
-        });
-        hls.on(Hls.Events.ERROR, (_: unknown, data: { fatal?: boolean; type?: string }) => {
-          if (data.fatal) {
-            this.renderIptvError(container, channel);
-          }
-        });
+      if (generation !== this.renderGeneration || !video.isConnected) return;
+      if (!Hls.isSupported()) {
+        this.renderIptvError(container, channel);
+        return;
       }
+      const hls = new Hls({ enableWorker: true, lowLatencyMode: true });
+      this.hlsInstances.push(hls);
+      hls.loadSource(channel.url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch(() => { /* autoplay blocked */ });
+      });
+      hls.on(Hls.Events.ERROR, (_event, data) => {
+        if (data.fatal) {
+          hls.destroy();
+          this.renderIptvError(container, channel);
+        }
+      });
     } catch {
-      // hls.js failed to load — show error
       this.renderIptvError(container, channel);
     }
   }
 
-  private extractYouTubeId(url: string): string | null {
-    const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
-    if (match) return match[1]!;
-    // For /live or /c/channel/live URLs, we can't easily extract an ID — use channel embed
-    if (url.includes('youtube.com')) {
-      // Convert channel live URL to embed
-      const channelMatch = url.match(/youtube\.com\/(?:c\/|@)?([^/]+)\/live/);
-      if (channelMatch) return null; // Can't embed channel URLs directly
-    }
-    return null;
-  }
-
   private renderIptvError(container: HTMLElement, channel: IptvChannel): void {
+    if (!container.isConnected || container.querySelector('.webcam-embed-fallback')) return;
     const overlay = document.createElement('div');
     overlay.className = 'webcam-embed-fallback';
 
@@ -491,22 +465,29 @@ export class LiveWebcamsPanel extends Panel {
       this.render();
     });
 
-    actions.appendChild(retryBtn);
+    const openBtn = document.createElement('a');
+    openBtn.className = 'offline-retry webcam-embed-open';
+    openBtn.href = channel.url;
+    openBtn.target = '_blank';
+    openBtn.rel = 'noopener noreferrer';
+    openBtn.textContent = 'Open stream';
+    openBtn.addEventListener('click', (e) => e.stopPropagation());
+
+    actions.append(retryBtn, openBtn);
     overlay.append(msg, actions);
     container.appendChild(overlay);
   }
 
   private destroyHls(): void {
-    if (this.hlsInstance) {
-      this.hlsInstance.destroy();
-      this.hlsInstance = null;
-    }
-    if (this.videoElement) {
-      this.videoElement.pause();
-      this.videoElement.src = '';
-      this.videoElement.remove();
-      this.videoElement = null;
-    }
+    this.hlsInstances.forEach(hls => hls.destroy());
+    this.hlsInstances = [];
+    this.videoElements.forEach(video => {
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      video.remove();
+    });
+    this.videoElements = [];
   }
 
   // ---------------------------------------------------------------------------
@@ -611,6 +592,7 @@ export class LiveWebcamsPanel extends Panel {
   // Map view
   // ---------------------------------------------------------------------------
   private async renderMapView(): Promise<void> {
+    const generation = this.renderGeneration;
     this.content.innerHTML = '';
     this.content.className = 'panel-content webcam-content';
 
@@ -618,11 +600,13 @@ export class LiveWebcamsPanel extends Panel {
     this.mapContainer.className = 'webcam-map-container';
     this.content.appendChild(this.mapContainer);
 
+    const container = this.mapContainer;
     try {
       const maplibregl = (await import('maplibre-gl')).default;
+      if (generation !== this.renderGeneration || !container.isConnected) return;
 
       this.mapInstance = new maplibregl.Map({
-        container: this.mapContainer,
+        container,
         style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
         center: [20, 20],
         zoom: 1.5,
@@ -631,16 +615,18 @@ export class LiveWebcamsPanel extends Panel {
 
       this.mapInstance.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
 
-      this.mapInstance.on('load', () => {
-        this.addMapMarkers(maplibregl);
-      });
+      // Markers are DOM overlays and don't need the basemap style, so add them right away —
+      // the map still shows channel locations if the tile CDN is slow or unreachable.
+      this.addMapMarkers(maplibregl);
     } catch {
-      this.mapContainer.innerHTML = '<div class="webcam-placeholder">Failed to load map</div>';
+      container.innerHTML = '<div class="webcam-placeholder">Failed to load map</div>';
     }
   }
 
-  private addMapMarkers(maplibregl: any): void {
-    if (!this.mapInstance) return;
+  private addMapMarkers(maplibregl: typeof import('maplibre-gl')): void {
+    const map = this.mapInstance;
+    if (!map) return;
+    const bounds = new maplibregl.LngLatBounds();
 
     if (this.sourceTab === 'surveillance') {
       // Add surveillance camera markers
@@ -653,8 +639,9 @@ export class LiveWebcamsPanel extends Panel {
 
         const el = document.createElement('div');
         el.className = 'webcam-map-marker webcam-map-marker--cam';
-        el.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="var(--red)" stroke="#fff" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+        el.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" style="fill:var(--red)" stroke="#fff" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
         el.title = `${feed.city}, ${feed.country}`;
+        el.dataset.feedId = feed.id;
 
         el.addEventListener('click', () => {
           this.activeFeed = feed;
@@ -663,23 +650,24 @@ export class LiveWebcamsPanel extends Panel {
 
         new maplibregl.Marker({ element: el })
           .setLngLat([feed.coords[1], feed.coords[0]])
-          .addTo(this.mapInstance);
+          .addTo(map);
+        bounds.extend([feed.coords[1], feed.coords[0]]);
       });
     } else {
       // Add IPTV channel markers
       const channels = this.iptvRegionFilter === 'all' ? IPTV_CHANNELS : IPTV_CHANNELS.filter(c => c.region === this.iptvRegionFilter);
-      // Group by country to avoid overlapping markers
+      // One marker per country, placed at its first channel's coordinates
       const byCountry = new Map<string, IptvChannel[]>();
       channels.forEach(ch => {
-        const key = `${ch.coords[0].toFixed(1)},${ch.coords[1].toFixed(1)}`;
-        if (!byCountry.has(key)) byCountry.set(key, []);
-        byCountry.get(key)!.push(ch);
+        if (!byCountry.has(ch.countryCode)) byCountry.set(ch.countryCode, []);
+        byCountry.get(ch.countryCode)!.push(ch);
       });
 
       byCountry.forEach((group) => {
         const first = group[0]!;
         const el = document.createElement('div');
         el.className = 'webcam-map-marker webcam-map-marker--iptv';
+        el.dataset.channelIds = group.map(c => c.id).join(',');
 
         const count = group.length;
         if (count > 1) {
@@ -696,18 +684,23 @@ export class LiveWebcamsPanel extends Panel {
             this.setViewMode('single');
           } else {
             // Show popup with channel list
-            this.showMapChannelPopup(group, first.coords);
+            this.showMapChannelPopup(group);
           }
         });
 
         new maplibregl.Marker({ element: el })
           .setLngLat([first.coords[1], first.coords[0]])
-          .addTo(this.mapInstance);
+          .addTo(map);
+        bounds.extend([first.coords[1], first.coords[0]]);
       });
+    }
+
+    if (!bounds.isEmpty()) {
+      map.fitBounds(bounds, { padding: 40, maxZoom: 4, duration: 0 });
     }
   }
 
-  private showMapChannelPopup(channels: IptvChannel[], _coords: [number, number]): void {
+  private showMapChannelPopup(channels: IptvChannel[]): void {
     // Remove any existing popup
     this.content.querySelector('.webcam-map-popup')?.remove();
 
@@ -755,6 +748,7 @@ export class LiveWebcamsPanel extends Panel {
   // Main render
   // ---------------------------------------------------------------------------
   private render(): void {
+    this.renderGeneration++;
     this.destroyIframes();
     this.destroyHls();
     this.destroyMap();
@@ -1060,6 +1054,7 @@ export class LiveWebcamsPanel extends Panel {
         this.isIdle = true;
         this.destroyIframes();
         this.destroyHls();
+        this.destroyMap();
         this.content.innerHTML = `<div class="webcam-placeholder">${escapeHtml(t('components.webcams.pausedIdle'))}</div>`;
       }, ECO_IDLE_PAUSE_MS);
     };
